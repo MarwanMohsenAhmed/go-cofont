@@ -1,4 +1,4 @@
-package cfonts
+package cofonts
 
 import (
 	"fmt"
@@ -18,7 +18,7 @@ func Render(text string, opts Options) (string, error) {
 	return renderCore(text, opts, fontSchema), nil
 }
 
-// Say prints the rendered cfonts sequence to standard output.
+// Say prints the rendered cofonts sequence to standard output.
 func Say(text string, opts Options) error {
 	out, err := Render(text, opts)
 	if err != nil {

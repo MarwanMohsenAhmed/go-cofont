@@ -1,10 +1,10 @@
-# CFonts-Go
+# CoFonts-Go
 
 [![Go Reference](https://pkg.go.dev/badge/github.com/MarwanMohsenAhmed/go-cofont.svg)](https://pkg.go.dev/github.com/MarwanMohsenAhmed/go-cofont)
 [![Go Report Card](https://goreportcard.com/badge/github.com/MarwanMohsenAhmed/go-cofont)](https://goreportcard.com/report/github.com/MarwanMohsenAhmed/go-cofont)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
-Sexy ANSI fonts for the console, written in pure Go. This is a high-performance, zero-dependency port of the original [cfonts](https://github.com/dominikwilkowski/cfonts).
+Sexy ANSI fonts for the console, written in pure Go. This is a high-performance, zero-dependency port of the original [CoFonts](https://github.com/dominikwilkowski/CoFonts).
 
 ## Features
 - **Zero Dependencies**: Uses `//go:embed` to ship all 13 fonts inside the binary.
@@ -29,11 +29,11 @@ import (
 )
 
 func main() {
-	opts := cfonts.DefaultOptions()
+	opts := cofonts.DefaultOptions()
 	opts.Font = "block"
 	opts.Gradient = []string{"#ff8800", "red"}
 
-	output, err := cfonts.Render("GO BLAZE", opts)
+	output, err := cofonts.Render("GO BLAZE", opts)
 	if err != nil {
 		panic(err)
 	}
@@ -54,7 +54,7 @@ func main() {
 | `MaxLength` | `int` | `0` | Max characters per line for wrapping. |
 
 ## Credits
-This project is a Go port of the excellent [cfonts](https://github.com/dominikwilkowski/cfonts) 
+This project is a Go port of the excellent [CoFonts](https://github.com/dominikwilkowski/CoFonts) 
 library originally created by **Dominik Wilkowski**. 
 
 The font definitions and ASCII art layouts used in this library are property 

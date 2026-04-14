@@ -1,4 +1,4 @@
-package cfonts
+package cofonts
 
 type Options struct {
 	Font                string

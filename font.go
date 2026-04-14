@@ -1,4 +1,4 @@
-package cfonts
+package cofonts
 
 import (
 	"embed"

@@ -11,7 +11,11 @@ func main() {
 	opts1 := cofonts.DefaultOptions()
 	opts1.Font = "block"
 	opts1.Colors = []string{"red"}
-	res1, _ := cofonts.Render("RED", opts1)
+	res1, err := cofonts.Render("RED", opts1)
+	if err != nil {
+		fmt.Printf("Error: %v\n", err)
+		return
+	}
 	fmt.Print(res1)
 
 	// Example 2: Gradient Text in 'slick' font
@@ -19,7 +23,11 @@ func main() {
 	opts2 := cofonts.DefaultOptions()
 	opts2.Font = "slick"
 	opts2.Gradient = []string{"cyan", "magenta"}
-	res2, _ := cofonts.Render("GRADIENT", opts2)
+	res2, err := cofonts.Render("GRADIENT", opts2)
+	if err != nil {
+		fmt.Printf("Error: %v\n", err)
+		return
+	}
 	fmt.Print(res2)
 
 	// Example 3: Tiny font with Align Center
@@ -28,6 +36,10 @@ func main() {
 	opts3.Font = "tiny"
 	opts3.Align = "center"
 	opts3.MaxLength = 40
-	res3, _ := cofonts.Render("CENTERED", opts3)
+	res3, err := cofonts.Render("CENTERED", opts3)
+	if err != nil {
+		fmt.Printf("Error: %v\n", err)
+		return
+	}
 	fmt.Print(res3)
 }

@@ -19,6 +19,31 @@ const (
 	AnimationBlink   AnimationStyle = "blink"
 )
 
+// ValidAnimationStyles returns all supported animation styles.
+func ValidAnimationStyles() []AnimationStyle {
+	return []AnimationStyle{
+		AnimationRainbow,
+		AnimationSlide,
+		AnimationPulse,
+		AnimationNeon,
+		AnimationGlitch,
+		AnimationBlink,
+	}
+}
+
+// IsValid checks if the animation style is supported.
+func (s AnimationStyle) IsValid() bool {
+	switch s {
+	case AnimationRainbow, AnimationSlide, AnimationPulse,
+		AnimationNeon, AnimationGlitch, AnimationBlink:
+		return true
+	}
+	return false
+}
+
+// animationCycleCount controls the gradient offset cycle for slide animation.
+const animationCycleCount = 100
+
 var (
 	rainbowColors = []string{"red", "yellow", "green", "cyan", "blue", "magenta"}
 	neonColors    = []string{"cyanBright", "magentaBright", "yellowBright", "redBright"}
@@ -26,17 +51,33 @@ var (
 
 // Animate a logo in the terminal until context is cancelled or an error occurs.
 func Animate(ctx context.Context, text string, opts Options, style AnimationStyle, speed time.Duration) error {
+	// Validate animation style
+	if !style.IsValid() {
+		return fmt.Errorf("unsupported animation style: %q (valid: %v)", style, ValidAnimationStyles())
+	}
+
+	// Validate speed to prevent 100% CPU usage
+	if speed <= 0 {
+		speed = 100 * time.Millisecond
+	}
+
 	// Hide cursor
 	fmt.Print("\033[?25l")
 	defer fmt.Print("\033[?25h") // Restore cursor on exit
 
 	frame := 0
-	lineCount := 0
-	rng := rand.New(rand.NewSource(time.Now().UnixNano()))
+	maxLineCount := 0
 
 	// Internal function to render and print a single frame
 	printFrame := func() error {
-		currentOpts := opts // Copy original options
+		// Deep-copy options to prevent race conditions on slices
+		currentOpts := opts
+		currentOpts.Colors = make([]string, len(opts.Colors))
+		copy(currentOpts.Colors, opts.Colors)
+		if opts.Gradient != nil {
+			currentOpts.Gradient = make([]string, len(opts.Gradient))
+			copy(currentOpts.Gradient, opts.Gradient)
+		}
 
 		switch style {
 		case AnimationRainbow:
@@ -47,7 +88,7 @@ func Animate(ctx context.Context, text string, opts Options, style AnimationStyl
 				currentOpts.Gradient = []string{rainbowColors[cIdx], rainbowColors[c2Idx]}
 			}
 		case AnimationSlide:
-			currentOpts.AnimationOffset = float64(frame%100) / 100.0
+			currentOpts.AnimationOffset = float64(frame%animationCycleCount) / float64(animationCycleCount)
 			if len(currentOpts.Gradient) < 2 {
 				currentOpts.Gradient = []string{"red", "blue"}
 			}
@@ -64,10 +105,10 @@ func Animate(ctx context.Context, text string, opts Options, style AnimationStyl
 				currentOpts.Gradient = nil
 			}
 		case AnimationGlitch:
-			cIdx := rng.Intn(len(rainbowColors))
+			cIdx := rand.Intn(len(rainbowColors))
 			currentOpts.Colors = []string{rainbowColors[cIdx]}
-			if rng.Float32() < 0.2 {
-				currentOpts.AnimationOffset = rng.Float64()
+			if rand.Float32() < 0.2 {
+				currentOpts.AnimationOffset = rand.Float64()
 			}
 		}
 
@@ -77,27 +118,29 @@ func Animate(ctx context.Context, text string, opts Options, style AnimationStyl
 			return err
 		}
 
-		// Clear previous frame by moving up to its first line
-		if lineCount > 0 {
-			// \033[F moves to start of line 1 line up.
-			// \033[NF moves to start of line N lines up.
-			fmt.Printf("\033[%dF", lineCount)
-			// Optional: Clear to end of screen to avoid ghosting
+		// Clear previous frame by tracking max line count
+		// This prevents ghosting when line counts vary between frames
+		clearLines := maxLineCount
+		if lineCount := strings.Count(out, "\n"); lineCount > clearLines {
+			clearLines = lineCount
+		}
+
+		if clearLines > 0 {
+			// Move cursor up and clear to end of screen
+			fmt.Printf("\033[%dF", clearLines)
 			fmt.Print("\033[J")
 		} else {
-			// First frame: just ensure we are at the start of the line
 			fmt.Print("\r")
 		}
 
 		// Print new frame
 		fmt.Print(out)
-		
-		// Update line count for next iteration
-		// Each \n in the output string represents a transition to a new line.
-		// If the output was "\n\nTEXT\n\n", strings.Count is 4. 
-		// That means the terminal cursor is 4 lines below where it started.
-		lineCount = strings.Count(out, "\n")
-		
+
+		// Update max line count for next iteration
+		if lineCount := strings.Count(out, "\n"); lineCount > maxLineCount {
+			maxLineCount = lineCount
+		}
+
 		frame++
 		return nil
 	}

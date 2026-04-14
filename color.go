@@ -12,6 +12,12 @@ type RGB struct {
 	Skip    bool
 }
 
+// ParseColorResult holds the result of color parsing, including warnings.
+type ParseColorResult struct {
+	RGB     RGB
+	Warning string // Non-empty if color was invalid/typo
+}
+
 var colorMap = map[string]RGB{
 	"system":        {R: 0, G: 0, B: 0, Skip: true},
 	"transparent":   {R: 0, G: 0, B: 0, Skip: true},
@@ -35,31 +41,55 @@ var colorMap = map[string]RGB{
 	"whitebright":   {R: 255, G: 255, B: 255, Skip: false},
 }
 
-func parseColor(s string) RGB {
+// parseColor parses a color string and returns the RGB value with optional warning.
+func parseColor(s string) ParseColorResult {
 	s = strings.TrimSpace(s)
 	ls := strings.ToLower(s)
+
+	// Handle skip colors
 	if ls == "" || ls == "system" || ls == "transparent" {
-		return RGB{Skip: true}
+		return ParseColorResult{RGB: RGB{Skip: true}, Warning: ""}
 	}
+
+	// Check named colors
 	if rgb, ok := colorMap[ls]; ok {
-		return rgb
+		return ParseColorResult{RGB: rgb, Warning: ""}
 	}
+
+	// Parse hex colors
 	if strings.HasPrefix(s, "#") {
 		hex := strings.TrimPrefix(s, "#")
+
+		// Expand 3-char hex to 6-char
 		if len(hex) == 3 {
 			hex = string([]byte{hex[0], hex[0], hex[1], hex[1], hex[2], hex[2]})
 		}
+
 		if len(hex) == 6 {
 			if r, err := strconv.ParseUint(hex[0:2], 16, 8); err == nil {
 				if g, err := strconv.ParseUint(hex[2:4], 16, 8); err == nil {
 					if b, err := strconv.ParseUint(hex[4:6], 16, 8); err == nil {
-						return RGB{R: uint8(r), G: uint8(g), B: uint8(b), Skip: false}
+						return ParseColorResult{
+							RGB:     RGB{R: uint8(r), G: uint8(g), B: uint8(b), Skip: false},
+							Warning: "",
+						}
 					}
 				}
 			}
 		}
+
+		// Invalid hex format
+		return ParseColorResult{
+			RGB:     colorMap["white"],
+			Warning: fmt.Sprintf("invalid hex color %q, falling back to white", s),
+		}
 	}
-	return colorMap["white"]
+
+	// Unknown color name
+	return ParseColorResult{
+		RGB:     colorMap["white"],
+		Warning: fmt.Sprintf("unknown color %q, falling back to white", s),
+	}
 }
 
 func interpolate(c1, c2 RGB, t float64) RGB {
@@ -77,10 +107,15 @@ func interpolate(c1, c2 RGB, t float64) RGB {
 	}
 }
 
+// Precompiled regex for color tags (performance optimization)
+var colorTagRegex = regexp.MustCompile(`<c\d+>|</c\d+>`)
+
 func applyColorTags(text string, colors []RGB) string {
 	if !strings.Contains(text, "<c1>") && len(colors) > 0 {
 		text = "<c1>" + text + "</c1>"
 	}
+
+	esc := escapeSequence()
 
 	for i, c := range colors {
 		tag := fmt.Sprintf("<c%d>", i+1)
@@ -91,22 +126,20 @@ func applyColorTags(text string, colors []RGB) string {
 			text = strings.ReplaceAll(text, closeTag, "")
 			continue
 		}
-		
-		ansi := fmt.Sprintf("\x1b[38;2;%d;%d;%dm", c.R, c.G, c.B)
-		reset := "\x1b[39m"
+
+		ansi := fmt.Sprintf("%s[38;2;%d;%d;%dm", esc, c.R, c.G, c.B)
+		reset := esc + "[39m"
 
 		text = strings.ReplaceAll(text, tag, ansi)
 		text = strings.ReplaceAll(text, closeTag, reset)
 	}
 
-	// Clean up any unmatched tags safely
-	re := regexp.MustCompile(`<c\d+>|</c\d+>`)
-	return re.ReplaceAllString(text, "")
+	// Clean up any unmatched tags safely using precompiled regex
+	return colorTagRegex.ReplaceAllString(text, "")
 }
 
 func stripTags(text string) string {
-	re := regexp.MustCompile(`<c\d+>|</c\d+>`)
-	return re.ReplaceAllString(text, "")
+	return colorTagRegex.ReplaceAllString(text, "")
 }
 
 func applyBackground(text string, bg string) string {
@@ -114,11 +147,24 @@ func applyBackground(text string, bg string) string {
 	if ls == "" || ls == "transparent" {
 		return text
 	}
-	c := parseColor(bg)
+	result := parseColor(bg)
+	c := result.RGB
 	if c.Skip {
 		return text
 	}
-	ansi := fmt.Sprintf("\x1b[48;2;%d;%d;%dm", c.R, c.G, c.B)
-	reset := "\x1b[49m"
+	esc := escapeSequence()
+	ansi := fmt.Sprintf("%s[48;2;%d;%d;%dm", esc, c.R, c.G, c.B)
+	reset := esc + "[49m"
 	return ansi + text + reset
+}
+
+// clamp restricts a value to a given range.
+func clamp(value, min, max int) int {
+	if value < min {
+		return min
+	}
+	if value > max {
+		return max
+	}
+	return value
 }

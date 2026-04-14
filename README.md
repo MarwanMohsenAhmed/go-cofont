@@ -20,6 +20,7 @@ go get github.com/MarwanMohsenAhmed/go-cofont
 
 ## Usage
 
+### Simple Render
 ```go
 package main
 
@@ -41,6 +42,26 @@ func main() {
 }
 ```
 
+### Real-time Animation
+```go
+package main
+
+import (
+	"context"
+	"time"
+	"github.com/MarwanMohsenAhmed/go-cofont"
+)
+
+func main() {
+	opts := cofonts.DefaultOptions()
+	opts.Gradient = []string{"cyan", "magenta"}
+	
+	// Animate until context is cancelled
+	ctx := context.Background()
+	cofonts.Animate(ctx, "ANIMATED", opts, cofonts.AnimationSlide, 50*time.Millisecond)
+}
+```
+
 ## Options
 
 | Option | Type | Default | Description |
@@ -49,9 +70,12 @@ func main() {
 | `Align` | `string` | `"left"` | Alignment: `left`, `center`, `right`. |
 | `Colors` | `[]string`| `["system"]`| List of colors for the font. |
 | `Gradient` | `[]string`| `nil` | Two colors for horizontal gradient (e.g. `["#f80", "red"]`). |
+| `AnimationOffset` | `float64` | `0.0` | Internal offset (0.0 to 1.0) for shifting gradients manually. |
 | `LetterSpacing`| `int` | `1` | Space between characters. |
 | `LineHeight` | `int` | `1` | Space between lines. |
 | `MaxLength` | `int` | `0` | Max characters per line for wrapping. |
+| `TransitionGradient` | `bool` | `false`| Enable smooth color transitions. |
+| `IndependentGradient`| `bool` | `false`| Apply gradient per line independently. |
 
 ## Credits
 This project is a Go port of the excellent [cfonts](https://github.com/dominikwilkowski/cfonts) 

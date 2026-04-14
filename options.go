@@ -14,6 +14,7 @@ type Options struct {
 	MaxLength           int
 	RawMode             bool
 	Env                 string
+	AnimationOffset     float64
 }
 
 // DefaultOptions returns a set of default options per the js/rust library.

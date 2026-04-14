@@ -84,6 +84,12 @@ func renderCore(text string, opts Options, font *FontSchema) string {
 						progress = float64(currentX) / float64(totalWidth-1)
 					}
 					
+					// Apply animation offset for sliding gradients
+					progress = math.Mod(progress+opts.AnimationOffset, 1.0)
+					if progress < 0 {
+						progress += 1.0
+					}
+					
 					// Simple horizontal gradient
 					singleMixedColor := interpolate(gStart, gEnd, progress)
 					

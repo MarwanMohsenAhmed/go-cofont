@@ -24,14 +24,14 @@ var colorMap = map[string]RGB{
 	"white":         {229, 229, 229},
 	"gray":          {102, 102, 102},
 	"grey":          {102, 102, 102},
-	"blackBright":   {102, 102, 102},
-	"redBright":     {241, 76, 76},
-	"greenBright":   {35, 209, 139},
-	"yellowBright":  {245, 245, 67},
-	"blueBright":    {59, 142, 234},
-	"magentaBright": {214, 112, 214},
-	"cyanBright":    {41, 184, 219},
-	"whiteBright":   {255, 255, 255},
+	"blackbright":   {102, 102, 102},
+	"redbright":     {241, 76, 76},
+	"greenbright":   {35, 209, 139},
+	"yellowbright":  {245, 245, 67},
+	"bluebright":    {59, 142, 234},
+	"magentabright": {214, 112, 214},
+	"cyanbright":    {41, 184, 219},
+	"whitebright":   {255, 255, 255},
 }
 
 func parseColor(s string) RGB {

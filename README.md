@@ -4,7 +4,7 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/MarwanMohsenAhmed/go-cofont)](https://goreportcard.com/report/github.com/MarwanMohsenAhmed/go-cofont)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
-Sexy ANSI fonts for the console, written in pure Go. This is a high-performance, zero-dependency port of the original [CoFonts](https://github.com/dominikwilkowski/CoFonts).
+Sexy ANSI fonts for the console, written in pure Go. This is a high-performance, zero-dependency port of the original [cfonts](https://github.com/dominikwilkowski/cfonts).
 
 ## Features
 - **Zero Dependencies**: Uses `//go:embed` to ship all 13 fonts inside the binary.
@@ -54,7 +54,7 @@ func main() {
 | `MaxLength` | `int` | `0` | Max characters per line for wrapping. |
 
 ## Credits
-This project is a Go port of the excellent [CoFonts](https://github.com/dominikwilkowski/CoFonts) 
+This project is a Go port of the excellent [cfonts](https://github.com/dominikwilkowski/cfonts) 
 library originally created by **Dominik Wilkowski**. 
 
 The font definitions and ASCII art layouts used in this library are property 
